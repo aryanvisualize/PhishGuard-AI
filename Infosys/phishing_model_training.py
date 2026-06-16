@@ -265,7 +265,14 @@ def train_baseline_models(X_train, y_train, X_val, y_val, X_train_scaled, X_val_
     
     # 2. Random Forest
     print("\n[2/3] Training Random Forest...")
-    rf_model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+    rf_model = RandomForestClassifier(
+        n_estimators=50,
+        max_depth=15,
+        min_samples_split=5,
+        min_samples_leaf=2,
+        random_state=42,
+        n_jobs=-1
+    )
     rf_model.fit(X_train, y_train)
     print("[+] Random Forest trained")
     
@@ -374,8 +381,8 @@ def tune_hyperparameters(model_name, X_train, y_train, X_val, y_val,
         
     elif model_name == 'Random Forest':
         param_grid = {
-            'n_estimators': [100, 200, 300],
-            'max_depth': [10, 20, 30, None],
+            'n_estimators': [25, 50, 75],
+            'max_depth': [10, 15, 20],
             'min_samples_split': [2, 5, 10],
             'min_samples_leaf': [1, 2, 4]
         }
@@ -464,8 +471,14 @@ def save_model(model, scaler, model_name, best_params, results, comparison_df):
     
     # Save model
     model_filename = f'phishing_detection_model_{model_name.replace(" ", "_").lower()}.pkl'
-    with open(model_filename, 'wb') as f:
-        pickle.dump(model, f)
+    
+    import joblib
+    
+    joblib.dump(
+        model,
+        model_filename,
+        compress=3
+    )
     print(f"[+] Model saved: {model_filename}")
     
     # Save scaler if used

@@ -4,7 +4,7 @@ Integrates with your trained Random Forest model (.pkl file)
 """
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-import pickle
+import joblib
 import pandas as pd
 import numpy as np
 import os
@@ -17,8 +17,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 
 # Model download URL (Dropbox direct download link)
-MODEL_URL = "https://www.dropbox.com/scl/fi/sk9um12fnn93jg66hkm9q/phishing_detection_model_random_forest.pkl?rlkey=wflwg5nlmo082whgkivn58h1s&st=6btjnsny&dl=1"
-MODEL_FILENAME = "phishing_detection_model_random_forest.pkl"
+MODEL_URL = "https://www.dropbox.com/scl/fi/7hc2xgxiqwsxp2no70wvf/phishing_detection_model_random_forest_compressed.pkl?rlkey=itu9jenxt9zzcafzgwl5swf5k&st=ydqae1qx&dl=0"
+MODEL_FILENAME = "phishing_detection_model_random_forest_compressed.pkl"
 
 
 def download_model(url, filename, max_retries=3):
@@ -26,7 +26,7 @@ def download_model(url, filename, max_retries=3):
     if os.path.exists(filename):
         # Check if file is complete (at least 700MB for our model)
         file_size = os.path.getsize(filename)
-        if file_size > 700 * 1024 * 1024:  # 700MB minimum
+        if file_size > 100 * 1024 * 1024: # 100MB minimum
             print(f"[+] Model file already exists: {filename} ({file_size / (1024*1024):.1f} MB)")
             return True
         else:
@@ -201,8 +201,7 @@ class PhishingDetector:
                 return
         
         try:
-            with open(model_path, 'rb') as f:
-                self.model = pickle.load(f)
+            self.model = joblib.load(model_path)
             self.model_loaded = True
             print(f"[+] Model loaded successfully from {model_path}")
         except FileNotFoundError:
