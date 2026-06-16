@@ -17,7 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 
 # Model download URL (Dropbox direct download link)
-MODEL_URL = "https://www.dropbox.com/scl/fi/7hc2xgxiqwsxp2no70wvf/phishing_detection_model_random_forest_compressed.pkl?rlkey=itu9jenxt9zzcafzgwl5swf5k&st=ydqae1qx&dl=0"
+MODEL_URL = "https://www.dropbox.com/scl/fi/7hc2xgxiqwsxp2no70wvf/phishing_detection_model_random_forest_compressed.pkl?rlkey=itu9jenxt9zzcafzgwl5swf5k&st=ydqae1qx&dl=1"
 MODEL_FILENAME = "phishing_detection_model_random_forest_compressed.pkl"
 
 
