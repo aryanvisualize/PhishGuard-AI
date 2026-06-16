@@ -17,8 +17,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 
 # Model download URL (Dropbox direct download link)
-MODEL_URL = "https://www.dropbox.com/scl/fi/7hc2xgxiqwsxp2no70wvf/phishing_detection_model_random_forest_compressed.pkl?rlkey=itu9jenxt9zzcafzgwl5swf5k&st=ydqae1qx&dl=1"
-MODEL_FILENAME = "phishing_detection_model_random_forest_compressed.pkl"
+MODEL_URL = "https://www.dropbox.com/scl/fi/hb5vgybhlo8ekjeofl9nf/phishing_detection_model_logistic_regression.pkl?rlkey=zer3qtwazbmh6brflt43o0i8j&st=smykm3wl&dl=1"
+MODEL_FILENAME = "phishing_detection_model_logistic_regression.pkl"
 
 
 def download_model(url, filename, max_retries=3):
@@ -26,8 +26,8 @@ def download_model(url, filename, max_retries=3):
     if os.path.exists(filename):
         # Check if file is complete (at least 700MB for our model)
         file_size = os.path.getsize(filename)
-        if file_size > 100 * 1024 * 1024: # 100MB minimum
-            print(f"[+] Model file already exists: {filename} ({file_size / (1024*1024):.1f} MB)")
+        if file_size > 1000:  # 1 KB minimum
+            print(f"[+] Model file already exists: {filename}")
             return True
         else:
             print(f"[!] Partial download detected ({file_size / (1024*1024):.1f} MB). Removing and re-downloading...")
@@ -402,7 +402,7 @@ def get_user_history(username):
 
 def load_model_stats():
     stats = {
-        'accuracy': 93.82,
+        'accuracy': 85.96,
         'precision': 91.12,
         'recall': 80.20,
         'f1_score': 85.31,
