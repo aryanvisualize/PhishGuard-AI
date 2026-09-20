@@ -1,0 +1,16 @@
+/* Add subtle glow effects for UI elements */
+.glow-effect {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+.hero-title .highlight {
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+.stat-number {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.feature-icon i {
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
