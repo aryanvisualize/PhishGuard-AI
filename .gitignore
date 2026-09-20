@@ -2,3 +2,4 @@
 users.json
 train.csv
 .env
+*.db

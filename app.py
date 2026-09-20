@@ -8,7 +8,6 @@ import joblib
 import pandas as pd
 import numpy as np
 import os
-import json
 from functools import wraps
 from datetime import datetime
 import re
@@ -16,6 +15,7 @@ from urllib.parse import urlparse
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 
@@ -368,31 +368,26 @@ class PhishingDetector:
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
+database_url = os.environ.get("DATABASE_URL", "sqlite:///phishguard.db")
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+with app.app_context():
+    db.create_all()
 
 detector = PhishingDetector(MODEL_FILENAME)
-
-USERS_FILE = 'users.json'
-
-def load_users():
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, 'r') as f:
-            return json.load(f)
-    else:
-        default_users = {
-            'admin': {
-                'password': generate_password_hash('admin123'),
-                'email': 'admin@example.com',
-                'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            }
-        }
-        save_users(default_users)
-        return default_users
-
-def save_users(users_data):
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users_data, f, indent=4)
-
-users = load_users()
 
 # Store prediction history per user (user-specific)
 user_prediction_history = {}
@@ -439,10 +434,11 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        user = db.session.scalar(db.select(User).where(User.username == username))
         
-        if username in users and check_password_hash(users[username]['password'], password):
+        if user and check_password_hash(user.password_hash, password):
             session['username'] = username
-            session['email'] = users[username].get('email', '')
+            session['email'] = user.email
             session['login_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             flash(f'Welcome back, {username}!', 'success')
             return redirect(url_for('dashboard'))
@@ -468,17 +464,18 @@ def signup():
             flash('Password must be at least 6 characters', 'danger')
         elif password != confirm_password:
             flash('Passwords do not match', 'danger')
-        elif username in users:
+        elif db.session.scalar(db.select(User).where(User.username == username)):
             flash('Username already exists', 'danger')
         elif not re.match(r'^[a-zA-Z0-9_]+$', username):
             flash('Username can only contain letters, numbers, and underscores', 'danger')
         else:
-            users[username] = {
-                'password': generate_password_hash(password),
-                'email': email,
-                'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            }
-            save_users(users)
+            user = User(
+                username=username,
+                email=email,
+                password_hash=generate_password_hash(password)
+            )
+            db.session.add(user)
+            db.session.commit()
             flash('Account created successfully! Please login.', 'success')
             return redirect(url_for('login'))
     
