@@ -1,3 +1,4 @@
 *.pkl
 users.json
 train.csv
+.env

@@ -15,6 +15,9 @@ import re
 from urllib.parse import urlparse
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Model download URL (Dropbox direct download link)
 MODEL_URL = "https://www.dropbox.com/scl/fi/hb5vgybhlo8ekjeofl9nf/phishing_detection_model_logistic_regression.pkl?rlkey=zer3qtwazbmh6brflt43o0i8j&st=smykm3wl&dl=1"
@@ -364,7 +367,7 @@ class PhishingDetector:
         return prediction, confidence, features
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production'
+app.secret_key = os.environ.get("SECRET_KEY")
 
 detector = PhishingDetector(MODEL_FILENAME)
 
